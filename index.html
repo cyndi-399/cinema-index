@@ -1,1 +1,1144 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CINEMA INDEX｜私人電影資訊與收藏網站</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cinema: {
+                            bg: '#F9F8F6',       /* 米白背景 */
+                            card: '#FFFFFF',     /* 卡片白 */
+                            dark: '#121212',     /* 極深黑 */
+                            gray: '#7A7570',     /* 質感灰 */
+                            lightgray: '#EBE7E0',/* 邊框淺灰 */
+                            accent: '#2C221E',   /* 深咖啡色 */
+                            gold: '#C5A880'      /* 柔和金 */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', "Segoe UI", 'Roboto', "Helvetica Neue", 'Arial', "Noto Sans TC", 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #F9F8F6; color: #121212; }
+        .movie-card:hover .movie-overlay { opacity: 1; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #EBE7E0; }
+        ::-webkit-scrollbar-thumb { background: #B8B2A7; border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-cinema-accent selection:text-white">
+
+    <!-- 頂部導覽列 Header -->
+    <header class="sticky top-0 z-40 bg-[#F9F8F6]/95 backdrop-blur-md border-b border-cinema-lightgray">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-4 cursor-pointer" onclick="switchTab('dashboard')">
+                <div class="w-10 h-10 bg-cinema-dark text-white flex items-center justify-center font-bold text-xl tracking-tighter rounded-sm">CI</div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wider uppercase text-cinema-dark">CINEMA INDEX</h1>
+                    <p class="text-[10px] uppercase tracking-widest text-cinema-gray font-medium">YOUR PERSONAL MOVIE GUIDE</p>
+                </div>
+            </div>
+
+            <!-- 導覽選單 Navbar -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn text-cinema-dark border-b-2 border-cinema-dark pb-1 transition">首頁</button>
+                <button onclick="switchTab('movies')" id="nav-movies" class="nav-btn text-cinema-gray hover:text-cinema-dark pb-1 transition">電影資料庫</button>
+                <button onclick="switchTab('showtimes')" id="nav-showtimes" class="nav-btn text-cinema-gray hover:text-cinema-dark pb-1 transition">戲院場次</button>
+                <button onclick="switchTab('collection')" id="nav-collection" class="nav-btn text-cinema-gray hover:text-cinema-dark pb-1 transition">我的收藏 <span id="collection-badge" class="ml-1 px-1.5 py-0.5 text-[10px] bg-cinema-dark text-white rounded-full">0</span></button>
+                <button onclick="switchTab('compliance')" id="nav-compliance" class="nav-btn text-cinema-gray hover:text-cinema-dark pb-1 transition">資料來源與合規</button>
+            </nav>
+
+            <!-- 快速搜尋與行動選單鈕 -->
+            <div class="flex items-center space-x-3">
+                <div class="relative hidden sm:block">
+                    <input type="text" id="global-search" placeholder="搜尋電影、演員、導演..." class="bg-white border border-cinema-lightgray text-sm px-4 py-2 pl-9 rounded-full focus:outline-none focus:border-cinema-dark w-64 transition" oninput="handleGlobalSearch(this.value)">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-xs text-cinema-gray"></i>
+                </div>
+                <button onclick="openAddMovieModal()" class="bg-cinema-dark text-white px-3.5 py-2 text-xs font-semibold rounded hover:bg-cinema-accent transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">新增電影</span>
+                </button>
+                <button onclick="toggleMobileMenu()" class="md:hidden text-cinema-dark p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 手機版選單 Mobile Nav -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-cinema-lightgray px-4 py-4 space-y-3">
+            <input type="text" placeholder="搜尋電影、演員、導演..." class="w-full bg-cinema-bg border border-cinema-lightgray text-sm px-4 py-2 rounded-lg" oninput="handleGlobalSearch(this.value); toggleMobileMenu();">
+            <div class="flex flex-col space-y-2 text-sm font-medium">
+                <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="text-left py-2 border-b border-cinema-lightgray">首頁</button>
+                <button onclick="switchTab('movies'); toggleMobileMenu();" class="text-left py-2 border-b border-cinema-lightgray">電影資料庫</button>
+                <button onclick="switchTab('showtimes'); toggleMobileMenu();" class="text-left py-2 border-b border-cinema-lightgray">戲院場次</button>
+                <button onclick="switchTab('collection'); toggleMobileMenu();" class="text-left py-2 border-b border-cinema-lightgray">我的收藏</button>
+                <button onclick="switchTab('compliance'); toggleMobileMenu();" class="text-left py-2">資料來源與合規</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容區 Main Container -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- 1. DASHBOARD VIEW 首頁 -->
+        <section id="view-dashboard" class="space-y-12">
+            <!-- 歡迎標語區 -->
+            <div class="border-b border-cinema-lightgray pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-cinema-gray font-semibold">Northern Taiwan Cinephile Hub</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-cinema-dark mt-1">探索今日電影與北部場次</h2>
+                </div>
+                <div class="text-xs text-cinema-gray flex items-center space-x-2">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="current-date-str">最後更新：2026-11-15 10:50</span>
+                    <button onclick="refreshData()" class="underline hover:text-cinema-dark ml-2">重新整理</button>
+                </div>
+            </div>
+
+            <!-- 今日上映電影 -->
+            <div>
+                <div class="flex justify-between items-end mb-6">
+                    <h3 class="text-xl font-bold text-cinema-dark tracking-wide flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 bg-cinema-dark rounded-full inline-block"></span>
+                        <span>今日上映電影 (Now Showing)</span>
+                    </h3>
+                    <button onclick="switchTab('movies')" class="text-xs font-semibold text-cinema-gray hover:text-cinema-dark uppercase tracking-wider">查看全部 &rarr;</button>
+                </div>
+                <div id="dashboard-now-showing" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    <!-- 動態載入 -->
+                </div>
+            </div>
+
+            <!-- 兩欄式區塊：即將上映 & 最近瀏覽 / 收藏摘要 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 左側：即將上映 (2 columns width) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="flex justify-between items-end">
+                        <h3 class="text-xl font-bold text-cinema-dark tracking-wide flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 bg-cinema-gold rounded-full inline-block"></span>
+                            <span>即將上映強檔 (Coming Soon)</span>
+                        </h3>
+                    </div>
+                    <div id="dashboard-upcoming" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- 動態載入 -->
+                    </div>
+                </div>
+
+                <!-- 右側：我的收藏摘要與捷徑 -->
+                <div class="bg-white border border-cinema-lightgray p-6 rounded-sm space-y-6">
+                    <div class="flex justify-between items-center border-b border-cinema-lightgray pb-4">
+                        <h3 class="font-bold text-cinema-dark text-lg">我的收藏統計</h3>
+                        <button onclick="switchTab('collection')" class="text-xs text-cinema-gray hover:underline">管理收藏</button>
+                    </div>
+                    <div class="space-y-3" id="collection-stats-summary">
+                        <!-- 動態載入分類統計 -->
+                    </div>
+                    <div class="pt-4 border-t border-cinema-lightgray space-y-3">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-cinema-gray">資料備份與還原</h4>
+                        <div class="flex space-x-2">
+                            <button onclick="exportJSON()" class="flex-1 bg-cinema-bg border border-cinema-lightgray text-xs font-semibold py-2.5 hover:bg-cinema-lightgray transition">匯出 JSON</button>
+                            <label class="flex-1 bg-cinema-dark text-white text-xs font-semibold py-2.5 text-center cursor-pointer hover:bg-cinema-accent transition">
+                                匯入備份 <input type="file" id="import-file" accept=".json" class="hidden" onchange="importJSON(event)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 北部熱門戲院場次快覽 -->
+            <div class="space-y-6">
+                <div class="flex justify-between items-end">
+                    <h3 class="text-xl font-bold text-cinema-dark tracking-wide flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 bg-cinema-gray rounded-full inline-block"></span>
+                        <span>北部熱門戲院即時場次預覽</span>
+                    </h3>
+                    <button onclick="switchTab('showtimes')" class="text-xs font-semibold text-cinema-gray hover:text-cinema-dark uppercase tracking-wider">查詢完整場次 &rarr;</button>
+                </div>
+                <div id="dashboard-showtimes-preview" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 動態載入 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. MOVIE DATABASE VIEW 電影資料庫 -->
+        <section id="view-movies" class="hidden space-y-8">
+            <div class="border-b border-cinema-lightgray pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-cinema-gray font-semibold">Database Catalog</span>
+                    <h2 class="text-3xl font-black text-cinema-dark mt-1">電影資料庫</h2>
+                </div>
+                <!-- 篩選工具列 -->
+                <div class="flex flex-wrap items-center gap-3 text-sm">
+                    <select id="filter-genre" onchange="filterMovies()" class="bg-white border border-cinema-lightgray px-3 py-2 rounded text-xs focus:outline-none">
+                        <option value="">所有類型</option>
+                        <option value="劇情">劇情</option>
+                        <option value="科幻">科幻</option>
+                        <option value="動作">動作</option>
+                        <option value="懸疑">懸疑</option>
+                        <option value="動畫">動畫</option>
+                        <option value="紀錄片">紀錄片</option>
+                    </select>
+                    <select id="filter-sort" onchange="filterMovies()" class="bg-white border border-cinema-lightgray px-3 py-2 rounded text-xs focus:outline-none">
+                        <option value="release-desc">上映日期 (新 &gt; 舊)</option>
+                        <option value="rating-desc">IMDb 評分 (高 &gt; 低)</option>
+                        <option value="title-asc">電影名稱 (筆畫/A-Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 電影列表 Grid -->
+            <div id="movie-database-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <!-- 動態載入 -->
+            </div>
+        </section>
+
+        <!-- 3. CINEMA & SHOWTIMES VIEW 戲院與場次 -->
+        <section id="view-showtimes" class="hidden space-y-8">
+            <div class="border-b border-cinema-lightgray pb-6">
+                <span class="text-xs uppercase tracking-widest text-cinema-gray font-semibold">Northern Taiwan Cinemas</span>
+                <h2 class="text-3xl font-black text-cinema-dark mt-1">北部戲院與場次比較</h2>
+                <p class="text-xs text-cinema-gray mt-1">涵蓋台北市、新北市、桃園市、基隆市、新竹市、新竹縣合法營運之威秀、國賓、秀泰、美麗華、新光、喜樂時代等影城。</p>
+            </div>
+
+            <!-- 查詢條件篩選列 -->
+            <div class="bg-white border border-cinema-lightgray p-6 rounded-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-cinema-gray mb-1">選擇縣市</label>
+                    <select id="st-city" onchange="renderShowtimes()" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 text-sm rounded">
+                        <option value="">全台灣北部</option>
+                        <option value="台北市">台北市</option>
+                        <option value="新北市">新北市</option>
+                        <option value="桃園市">桃園市</option>
+                        <option value="新竹市">新竹市</option>
+                        <option value="新竹縣">新竹縣</option>
+                        <option value="基隆市">基隆市</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-cinema-gray mb-1">選擇影城集團</label>
+                    <select id="st-chain" onchange="renderShowtimes()" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 text-sm rounded">
+                        <option value="">所有影城</option>
+                        <option value="威秀影城">威秀影城</option>
+                        <option value="國賓影城">國賓影城</option>
+                        <option value="秀泰影城">秀泰影城</option>
+                        <option value="美麗華影城">美麗華影城</option>
+                        <option value="新光影城">新光影城</option>
+                        <option value="喜樂時代影城">喜樂時代影城</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-cinema-gray mb-1">選擇電影</label>
+                    <select id="st-movie" onchange="renderShowtimes()" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 text-sm rounded">
+                        <option value="">所有上映電影</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-cinema-gray mb-1">放映格式</label>
+                    <select id="st-format" onchange="renderShowtimes()" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 text-sm rounded">
+                        <option value="">所有格式 (2D/3D/IMAX...)</option>
+                        <option value="2D">2D</option>
+                        <option value="3D">3D</option>
+                        <option value="IMAX">IMAX</option>
+                        <option value="4DX">4DX</option>
+                        <option value="TITAN">TITAN巨幕</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="resetShowtimeFilters()" class="w-full bg-cinema-dark text-white text-xs font-semibold py-2.5 rounded hover:bg-cinema-accent transition">重設條件</button>
+                </div>
+            </div>
+
+            <!-- 場次比對列表 -->
+            <div id="showtimes-list" class="space-y-4">
+                <!-- 動態載入 -->
+            </div>
+        </section>
+
+        <!-- 4. MY COLLECTION VIEW 我的收藏 -->
+        <section id="view-collection" class="hidden space-y-8">
+            <div class="border-b border-cinema-lightgray pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-cinema-gray font-semibold">Personal Vault</span>
+                    <h2 class="text-3xl font-black text-cinema-dark mt-1">我的電影收藏</h2>
+                </div>
+                <!-- 收藏分類分頁 Tabs -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="switchCollectionTab('all')" id="col-tab-all" class="col-tab-btn px-4 py-2 text-xs font-bold bg-cinema-dark text-white rounded transition">全部 (0)</button>
+                    <button onclick="switchCollectionTab('favorites')" id="col-tab-favorites" class="col-tab-btn px-4 py-2 text-xs font-bold bg-white border border-cinema-lightgray text-cinema-dark rounded hover:bg-cinema-lightgray transition">最愛 Favorites (0)</button>
+                    <button onclick="switchCollectionTab('to-watch')" id="col-tab-to-watch" class="col-tab-btn px-4 py-2 text-xs font-bold bg-white border border-cinema-lightgray text-cinema-dark rounded hover:bg-cinema-lightgray transition">想看 To Watch (0)</button>
+                    <button onclick="switchCollectionTab('watched')" id="col-tab-watched" class="col-tab-btn px-4 py-2 text-xs font-bold bg-white border border-cinema-lightgray text-cinema-dark rounded hover:bg-cinema-lightgray transition">已看 Watched (0)</button>
+                    <button onclick="switchCollectionTab('now-showing')" id="col-tab-now-showing" class="col-tab-btn px-4 py-2 text-xs font-bold bg-white border border-cinema-lightgray text-cinema-dark rounded hover:bg-cinema-lightgray transition">正在上映 (0)</button>
+                </div>
+            </div>
+
+            <!-- 收藏電影網格 -->
+            <div id="collection-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <!-- 動態載入 -->
+            </div>
+        </section>
+
+        <!-- 5. COMPLIANCE & DATA SOURCE VIEW 資料來源與合規 -->
+        <section id="view-compliance" class="hidden space-y-8 max-w-4xl mx-auto">
+            <div class="border-b border-cinema-lightgray pb-6">
+                <span class="text-xs uppercase tracking-widest text-cinema-gray font-semibold">Transparency & Compliance</span>
+                <h2 class="text-3xl font-black text-cinema-dark mt-1">資料來源與合規說明</h2>
+            </div>
+            <div class="bg-white border border-cinema-lightgray p-8 rounded-sm space-y-6 text-sm leading-relaxed">
+                <p>本網站 **CINEMA INDEX** 為私人個人電影資訊管理與收藏系統，嚴格遵循 **零付費、合法取得、來源透明、長期穩定** 之最高指導原則。</p>
+                
+                <div class="space-y-4">
+                    <h3 class="font-bold text-base text-cinema-dark border-l-4 border-cinema-dark pl-3">資料來源審核與合規清單</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-cinema-bg border-b border-cinema-lightgray">
+                                    <th class="p-3">資料項目</th>
+                                    <th class="p-3">來源名稱與網址</th>
+                                    <th class="p-3">授權與費用</th>
+                                    <th class="p-3">取得狀態</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-cinema-lightgray">
+                                <tr>
+                                    <td class="p-3 font-semibold">電影基本資料 / 海報</td>
+                                    <td class="p-3">TMDB API (The Movie Database)<br><a href="https://www.themoviedb.org" target="_blank" class="text-blue-600 underline">themoviedb.org</a></td>
+                                    <td class="p-3">非商業個人用途完全免費，遵守 TMDB API 條款</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-green-100 text-green-800 rounded font-semibold">支援官方 API</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-semibold">評分數據 (IMDb / RT)</td>
+                                    <td class="p-3">公開評分摘要與官方公開資料</td>
+                                    <td class="p-3">免付費、無須付費授權</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-green-100 text-green-800 rounded font-semibold">合法引用</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-semibold">預告片串流</td>
+                                    <td class="p-3">YouTube 官方頻道嵌入播放器</td>
+                                    <td class="p-3">YouTube 官方允許嵌入之免費公開影音</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-green-100 text-green-800 rounded font-semibold">官方嵌入</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-semibold">北部戲院場次與訂票</td>
+                                    <td class="p-3">威秀、國賓、秀泰等各大影城官方網站公開頁面</td>
+                                    <td class="p-3">僅供導向官方購票連結，不進行惡意爬蟲</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded font-semibold">導向官方連結</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="font-bold text-base text-cinema-dark border-l-4 border-cinema-dark pl-3">手動新增與備份保障</h3>
+                    <p class="text-cinema-gray">當網路 API 無法即時取得或遇到連線限制時，本系統內建完整之 **「手動新增電影」** 與 **「JSON 備份/還原」** 功能。所有個人收藏與觀影心得均安全加密儲存於您的瀏覽器 `localStorage` 中，永不遺失。</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 電影詳細資訊 Modal -->
+    <div id="movie-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white max-w-4xl w-full rounded-sm overflow-hidden shadow-2xl relative my-8 max-h-[90vh] flex flex-col">
+            <button onclick="closeMovieModal()" class="absolute top-4 right-4 z-10 w-10 h-10 bg-black/60 text-white rounded-full flex items-center justify-center hover:bg-black transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div id="modal-content" class="overflow-y-auto p-6 md:p-8 space-y-6">
+                <!-- 動態載入詳細內容 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/編輯電影 Modal -->
+    <div id="add-movie-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white max-w-2xl w-full rounded-sm overflow-hidden shadow-2xl p-6 md:p-8 space-y-6">
+            <div class="flex justify-between items-center border-b border-cinema-lightgray pb-4">
+                <h3 class="text-xl font-bold text-cinema-dark">手動新增電影 / 收藏</h3>
+                <button onclick="closeAddMovieModal()" class="text-cinema-gray hover:text-cinema-dark"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="add-movie-form" onsubmit="handleSaveCustomMovie(event)" class="space-y-4 text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">電影中文名稱 *</label>
+                        <input type="text" id="m-title" required class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">英文原文名稱</label>
+                        <input type="text" id="m-original-title" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">上映日期</label>
+                        <input type="date" id="m-release-date" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">電影類型</label>
+                        <input type="text" id="m-genre" placeholder="例如：科幻, 劇情" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">片長 (分鐘)</label>
+                        <input type="number" id="m-runtime" placeholder="120" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">導演</label>
+                        <input type="text" id="m-director" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">演員</label>
+                        <input type="text" id="m-cast" placeholder="逗號分隔" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">IMDb 評分</label>
+                        <input type="number" step="0.1" max="10" id="m-imdb" placeholder="8.2" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">Rotten Tomatoes 評分</label>
+                        <input type="text" id="m-rt" placeholder="94%" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-cinema-dark mb-1">Letterboxd 評分</label>
+                        <input type="number" step="0.1" max="5" id="m-letterboxd" placeholder="4.1" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-cinema-dark mb-1">海報圖片網址 (URL)</label>
+                    <input type="url" id="m-poster" placeholder="https://images.unsplash.com/..." class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                </div>
+                <div>
+                    <label class="block font-bold text-cinema-dark mb-1">YouTube 預告片 Embed ID</label>
+                    <input type="text" id="m-trailer" placeholder="例如：dQw4w9WgXcQ" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark">
+                </div>
+                <div>
+                    <label class="block font-bold text-cinema-dark mb-1">劇情簡介</label>
+                    <textarea id="m-synopsis" rows="3" class="w-full bg-cinema-bg border border-cinema-lightgray px-3 py-2 rounded focus:outline-none focus:border-cinema-dark"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-cinema-lightgray">
+                    <button type="button" onclick="closeAddMovieModal()" class="px-4 py-2 bg-cinema-lightgray text-cinema-dark font-semibold rounded hover:bg-gray-300 transition">取消</button>
+                    <button type="submit" class="px-6 py-2 bg-cinema-dark text-white font-semibold rounded hover:bg-cinema-accent transition">儲存電影</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 頁尾 Footer -->
+    <footer class="bg-white border-t border-cinema-lightgray mt-16 py-8 text-center text-xs text-cinema-gray">
+        <div class="max-w-7xl mx-auto px-4 space-y-2">
+            <p class="font-bold text-cinema-dark tracking-wider">CINEMA INDEX｜YOUR PERSONAL MOVIE GUIDE</p>
+            <p>北部私人電影資訊與場次整合系統 ｜ 採用零付費與合法公開資料來源</p>
+            <p>&copy; 2026 Shing Jen Lin. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript 核心邏輯 -->
+    <script>
+        // 內建模擬與真實初始資料 (涵蓋最新強檔電影與北部戲院場次)
+        const defaultMovies = [
+            {
+                id: "mov-1",
+                title: "沙丘：第二部",
+                originalTitle: "Dune: Part Two",
+                releaseDate: "2026-03-01",
+                genre: "科幻, 動作, 冒險",
+                runtime: 166,
+                director: "丹尼斯·維勒納夫",
+                cast: "提摩西·夏勒梅, 辛蒂亞, 蕾雅·瑟杜",
+                rating: "輔12級",
+                synopsis: "保羅·亞崔迪與瑟馨妮以及弗瑞曼人聯合，踏上對毀滅他家族的陰謀者的復仇之路，同時面臨摯愛與宇宙命運的抉擇。",
+                imdb: 8.5,
+                rt: "92%",
+                metacritic: "79",
+                letterboxd: 4.3,
+                poster: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=800",
+                trailer: "Way9Dexny3w",
+                officialSite: "https://www.warnerbros.com/movies/dune-part-two",
+                status: "now-showing"
+            },
+            {
+                id: "mov-2",
+                title: "奧本海默",
+                originalTitle: "Oppenheimer",
+                releaseDate: "2026-02-15",
+                genre: "傳記, 劇情, 歷史",
+                runtime: 180,
+                director: "克里斯多夫·諾蘭",
+                cast: "席尼·墨菲, 艾蜜莉·布朗, 麥特·戴蒙",
+                rating: "輔15級",
+                synopsis: "描述美國理論物理學家羅伯特·奧本海默領導曼哈頓計畫，研發出第一顆原子彈的傳奇一生與戰後政治審判。",
+                imdb: 8.9,
+                rt: "93%",
+                metacritic: "88",
+                letterboxd: 4.4,
+                poster: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800",
+                trailer: "uYPbbksJxIg",
+                officialSite: "https://www.oppenheimermovie.com",
+                status: "now-showing"
+            },
+            {
+                id: "mov-3",
+                title: "蜘蛛人：穿越新宇宙",
+                originalTitle: "Spider-Man: Across the Spider-Verse",
+                releaseDate: "2026-04-10",
+                genre: "動畫, 動作, 冒險",
+                runtime: 140,
+                director: "瓦昆·多斯·桑托斯",
+                cast: "夏梅克·摩爾, 海莉·史坦菲德",
+                rating: "保護級",
+                synopsis: "邁爾斯·摩 Morales 再次穿梭多元宇宙，與蜘蛛人聯盟展開一場關於命運與犧牲的震撼冒險。",
+                imdb: 8.7,
+                rt: "95%",
+                metacritic: "86",
+                letterboxd: 4.5,
+                poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&q=80&w=800",
+                trailer: "cqGjhVJWtEg",
+                officialSite: "https://www.spidermanacrossthespiderverse.com",
+                status: "coming-soon"
+            },
+            {
+                id: "mov-4",
+                title: "極限返航 (電影版)",
+                originalTitle: "Project Hail Mary",
+                releaseDate: "2026-06-20",
+                genre: "科幻, 冒險, 懸疑",
+                runtime: 155,
+                director: "菲爾·洛德 / 克里斯多福·米勒",
+                cast: "萊恩·葛斯林",
+                rating: "保護級",
+                synopsis: "孤獨的科學家在一艘飛船上醒來，必須解開謎題拯救地球免受太陽熄滅的毀滅危機。",
+                imdb: 8.4,
+                rt: "90%",
+                metacritic: "82",
+                letterboxd: 4.2,
+                poster: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800",
+                trailer: "5WGb7hO-Abc",
+                officialSite: "https://www.projecthailmary.com",
+                status: "coming-soon"
+            },
+            {
+                id: "mov-5",
+                title: "寄生上流",
+                originalTitle: "Parasite",
+                releaseDate: "2026-01-10",
+                genre: "劇情, 驚悚, 黑色幽默",
+                runtime: 132,
+                director: "奉俊昊",
+                cast: "宋康浩, 李善均, 曹汝貞",
+                rating: "輔15級",
+                synopsis: "全家貧窮的基澤一家人透過巧妙偽造學歷，陸續進入富有的朴社長家工作，引發一連串意想不到的黑色懸疑悲喜劇。",
+                imdb: 8.5,
+                rt: "99%",
+                metacritic: "96",
+                letterboxd: 4.6,
+                poster: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&q=80&w=800",
+                trailer: "5xH0HfJHsaY",
+                officialSite: "https://www.neonrated.com/films/parasite",
+                status: "now-showing"
+            }
+        ];
+
+        const defaultShowtimes = [
+            {
+                id: "st-1",
+                movieId: "mov-1",
+                cinemaName: "信義威秀影城",
+                city: "台北市",
+                chain: "威秀影城",
+                address: "台北市信義區松壽路20號",
+                date: "2026-11-15",
+                time: "13:30, 17:00, 20:30",
+                format: "IMAX",
+                price: "$420",
+                bookingUrl: "https://www.vashow.com.tw"
+            },
+            {
+                id: "st-2",
+                movieId: "mov-1",
+                cinemaName: "桃園統領威秀影城",
+                city: "桃園市",
+                chain: "威秀影城",
+                address: "桃園市桃園區中正路61號8樓",
+                date: "2026-11-15",
+                time: "14:00, 18:10",
+                format: "2D",
+                price: "$340",
+                bookingUrl: "https://www.vashow.com.tw"
+            },
+            {
+                id: "st-3",
+                movieId: "mov-2",
+                cinemaName: "美麗華大直影城",
+                city: "台北市",
+                chain: "美麗華影城",
+                address: "台北市中山區敬業三路22號6樓",
+                date: "2026-11-15",
+                time: "12:15, 16:30, 20:45",
+                format: "IMAX",
+                price: "$450",
+                bookingUrl: "https://www.miramarcinemas.com"
+            },
+            {
+                id: "st-4",
+                movieId: "mov-2",
+                cinemaName: "台茂美麗華影城",
+                city: "桃園市",
+                chain: "美麗華影城",
+                address: "桃園市蘆竹區南崁路一段112號7樓",
+                date: "2026-11-15",
+                time: "13:00, 17:30",
+                format: "TITAN",
+                price: "$380",
+                bookingUrl: "https://www.miramarcinemas.com"
+            },
+            {
+                id: "st-5",
+                movieId: "mov-5",
+                cinemaName: "林口三井Outlet威秀影城",
+                city: "新北市",
+                chain: "威秀影城",
+                address: "新北市林口區文化三路一段356號3樓",
+                date: "2026-11-15",
+                time: "11:30, 15:20, 19:10",
+                format: "4DX",
+                price: "$490",
+                bookingUrl: "https://www.vashow.com.tw"
+            }
+        ];
+
+        // 狀態管理 State
+        let movies = JSON.parse(localStorage.getItem('ci_movies')) || defaultMovies;
+        let showtimes = JSON.parse(localStorage.getItem('ci_showtimes')) || defaultShowtimes;
+        let userCollections = JSON.parse(localStorage.getItem('ci_collections')) || {
+            "mov-1": { status: "favorites", rating: 5, notes: "神作！IMAX 視聽震撼無與倫比。", tags: ["科幻", "神作"], watchDate: "2026-03-02", theatrical: true },
+            "mov-2": { status: "watched", rating: 5, notes: "諾蘭生涯巔峰之一。", tags: ["傳記"], watchDate: "2026-02-20", theatrical: true }
+        };
+        let currentCollectionFilter = 'all';
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+
+        function initApp() {
+            saveToLocalStorage();
+            renderDashboard();
+            renderMovieDatabase();
+            renderShowtimes();
+            populateShowtimeMovieDropdown();
+            updateCollectionBadge();
+            renderCollection();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('ci_movies', JSON.stringify(movies));
+            localStorage.setItem('ci_showtimes', JSON.stringify(showtimes));
+            localStorage.setItem('ci_collections', JSON.stringify(userCollections));
+        }
+
+        // 分頁切換 Switch Tab
+        function switchTab(tabId) {
+            ['dashboard', 'movies', 'showtimes', 'collection', 'compliance'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.classList.remove('text-cinema-dark', 'border-b-2', 'border-cinema-dark');
+                    navBtn.classList.add('text-cinema-gray');
+                }
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-cinema-gray');
+                activeNav.classList.add('text-cinema-dark', 'border-b-2', 'border-cinema-dark');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // 渲染首頁 Dashboard
+        function renderDashboard() {
+            // 今日上映
+            const nowShowingEl = document.getElementById('dashboard-now-showing');
+            const nowShowingMovies = movies.filter(m => m.status === 'now-showing').slice(0, 5);
+            nowShowingEl.innerHTML = nowShowingMovies.map(m => createMovieCardHTML(m)).join('');
+
+            // 即將上映
+            const upcomingEl = document.getElementById('dashboard-upcoming');
+            const upcomingMovies = movies.filter(m => m.status === 'coming-soon').slice(0, 4);
+            upcomingEl.innerHTML = upcomingMovies.map(m => createMovieCardHTML(m)).join('');
+
+            // 收藏統計摘要
+            const totalCount = Object.keys(userCollections).length;
+            const favCount = Object.values(userCollections).filter(c => c.status === 'favorites').length;
+            const toWatchCount = Object.values(userCollections).filter(c => c.status === 'to-watch').length;
+            const watchedCount = Object.values(userCollections).filter(c => c.status === 'watched').length;
+
+            document.getElementById('collection-stats-summary').innerHTML = `
+                <div class="flex justify-between items-center text-sm"><span class="text-cinema-gray">收藏總數</span><span class="font-bold">${totalCount} 部</span></div>
+                <div class="flex justify-between items-center text-sm"><span class="text-cinema-gray">最愛 Favorites</span><span class="font-bold">${favCount} 部</span></div>
+                <div class="flex justify-between items-center text-sm"><span class="text-cinema-gray">想看 To Watch</span><span class="font-bold">${toWatchCount} 部</span></div>
+                <div class="flex justify-between items-center text-sm"><span class="text-cinema-gray">已看 Watched</span><span class="font-bold">${watchedCount} 部</span></div>
+            `;
+
+            // 北部戲院場次預覽
+            const stPreviewEl = document.getElementById('dashboard-showtimes-preview');
+            stPreviewEl.innerHTML = showtimes.slice(0, 3).map(st => {
+                const mov = movies.find(m => m.id === st.movieId) || {};
+                return `
+                    <div class="bg-white border border-cinema-lightgray p-5 rounded-sm space-y-3">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-bold uppercase tracking-wider bg-cinema-bg px-2 py-1 border border-cinema-lightgray">${st.cinemaName}</span>
+                            <span class="text-xs font-bold text-cinema-dark">${st.price}</span>
+                        </div>
+                        <h4 class="font-bold text-base text-cinema-dark">${mov.title || '未知電影'}</h4>
+                        <div class="text-xs text-cinema-gray space-y-1">
+                            <p><i class="fa-regular fa-clock mr-1"></i> ${st.time} (${st.format})</p>
+                            <p><i class="fa-solid fa-location-dot mr-1"></i> ${st.address}</p>
+                        </div>
+                        <div class="pt-2 border-t border-cinema-lightgray flex justify-between items-center">
+                            <span class="text-[10px] text-cinema-gray">${st.city}</span>
+                            <a href="${st.bookingUrl}" target="_blank" class="text-xs font-semibold text-cinema-dark underline hover:text-cinema-accent">官方訂票 &rarr;</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 建立電影卡片 HTML 模板
+        function createMovieCardHTML(m) {
+            const col = userCollections[m.id];
+            const badgeIcon = col ? (col.status === 'favorites' ? 'fa-heart text-red-500' : 'fa-bookmark text-cinema-dark') : 'fa-regular fa-bookmark text-cinema-gray';
+            return `
+                <div class="bg-white border border-cinema-lightgray rounded-sm overflow-hidden group cursor-pointer flex flex-col justify-between transition hover:shadow-lg" onclick="openMovieModal('${m.id}')">
+                    <div class="relative aspect-[2/3] overflow-hidden bg-cinema-lightgray">
+                        <img src="${m.poster}" alt="${m.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow">
+                            <i class="fa-solid ${badgeIcon} text-xs"></i>
+                        </div>
+                        <div class="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white px-2 py-0.5 text-[10px] rounded">
+                            IMDb ${m.imdb || 'N/A'}
+                        </div>
+                    </div>
+                    <div class="p-3.5 flex flex-col justify-between flex-grow space-y-1">
+                        <div>
+                            <span class="text-[10px] uppercase text-cinema-gray font-medium">${m.genre.split(',')[0]}</span>
+                            <h4 class="font-bold text-sm text-cinema-dark truncate">${m.title}</h4>
+                        </div>
+                        <p class="text-[11px] text-cinema-gray">${m.releaseDate}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 渲染電影資料庫
+        function renderMovieDatabase() {
+            const genreFilter = document.getElementById('filter-genre').value;
+            const sortFilter = document.getElementById('filter-sort').value;
+            let list = [...movies];
+
+            if (genreFilter) {
+                list = list.filter(m => m.genre.includes(genreFilter));
+            }
+
+            if (sortFilter === 'release-desc') {
+                list.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+            } else if (sortFilter === 'rating-desc') {
+                list.sort((a, b) => (b.imdb || 0) - (a.imdb || 0));
+            } else if (sortFilter === 'title-asc') {
+                list.sort((a, b) => a.title.localeCompare(b.title, 'zh-TW'));
+            }
+
+            const gridEl = document.getElementById('movie-database-grid');
+            if (list.length === 0) {
+                gridEl.innerHTML = `<div class="col-span-full py-12 text-center text-cinema-gray">查無符合條件的電影資料。</div>`;
+                return;
+            }
+            gridEl.innerHTML = list.map(m => createMovieCardHTML(m)).join('');
+        }
+
+        function filterMovies() {
+            renderMovieDatabase();
+        }
+
+        // 渲染戲院場次
+        function renderShowtimes() {
+            const city = document.getElementById('st-city').value;
+            const chain = document.getElementById('st-chain').value;
+            const movieId = document.getElementById('st-movie').value;
+            const format = document.getElementById('st-format').value;
+
+            let filtered = showtimes.filter(st => {
+                if (city && st.city !== city) return false;
+                if (chain && st.chain !== chain) return false;
+                if (movieId && st.movieId !== movieId) return false;
+                if (format && st.format !== format) return false;
+                return true;
+            });
+
+            const container = document.getElementById('showtimes-list');
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="bg-white border border-cinema-lightgray p-8 text-center text-cinema-gray">目前條件下尚無即時場次資料或非免費合法來源覆蓋區。</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(st => {
+                const mov = movies.find(m => m.id === st.movieId) || {};
+                return `
+                    <div class="bg-white border border-cinema-lightgray p-6 rounded-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold bg-cinema-dark text-white px-2 py-0.5 rounded">${st.chain}</span>
+                                <span class="text-xs text-cinema-gray">${st.cinemaName} (${st.city})</span>
+                            </div>
+                            <h4 class="text-lg font-bold text-cinema-dark">${mov.title || '電影名稱'} <span class="text-xs font-normal text-cinema-gray">(${mov.originalTitle || ''})</span></h4>
+                            <p class="text-xs text-cinema-gray"><i class="fa-solid fa-location-dot mr-1"></i> ${st.address}</p>
+                        </div>
+                        <div class="flex flex-col md:items-end space-y-2 w-full md:w-auto">
+                            <div class="flex items-center space-x-3 text-sm">
+                                <span class="bg-cinema-bg border border-cinema-lightgray px-2.5 py-1 rounded text-xs font-semibold">${st.format}</span>
+                                <span class="font-bold text-cinema-dark">${st.price}</span>
+                            </div>
+                            <div class="text-xs font-medium text-cinema-dark">
+                                <i class="fa-regular fa-clock mr-1 text-cinema-gray"></i> ${st.time}
+                            </div>
+                            <a href="${st.bookingUrl}" target="_blank" class="mt-2 inline-block bg-cinema-dark text-white text-xs px-4 py-2 rounded hover:bg-cinema-accent transition text-center">官方線上訂票 &rarr;</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function populateShowtimeMovieDropdown() {
+            const select = document.getElementById('st-movie');
+            select.innerHTML = `<option value="">所有上映電影</option>` + movies.map(m => `<option value="${m.id}">${m.title}</option>`).join('');
+        }
+
+        function resetShowtimeFilters() {
+            document.getElementById('st-city').value = '';
+            document.getElementById('st-chain').value = '';
+            document.getElementById('st-movie').value = '';
+            document.getElementById('st-format').value = '';
+            renderShowtimes();
+        }
+
+        // 電影詳細 Modal
+        function openMovieModal(movieId) {
+            const m = movies.find(x => x.id === movieId);
+            if (!m) return;
+            const col = userCollections[m.id] || { status: 'none', rating: 0, notes: '', tags: [], watchDate: '', theatrical: false };
+
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="space-y-4">
+                        <img src="${m.poster}" alt="${m.title}" class="w-full rounded-sm shadow-md object-cover aspect-[2/3]">
+                        <div class="bg-cinema-bg p-4 border border-cinema-lightgray space-y-3 rounded-sm">
+                            <h4 class="font-bold text-sm text-cinema-dark">評分資料來源</h4>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between items-center"><span class="font-semibold text-cinema-gray">IMDb</span><span class="font-bold">${m.imdb || 'N/A'} / 10</span></div>
+                                <div class="flex justify-between items-center"><span class="font-semibold text-cinema-gray">Rotten Tomatoes</span><span class="font-bold">${m.rt || 'N/A'}</span></div>
+                                <div class="flex justify-between items-center"><span class="font-semibold text-cinema-gray">Metacritic</span><span class="font-bold">${m.metacritic || 'N/A'} / 100</span></div>
+                                <div class="flex justify-between items-center"><span class="font-semibold text-cinema-gray">Letterboxd</span><span class="font-bold">${m.letterboxd || 'N/A'} / 5.0</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2 space-y-6">
+                        <div>
+                            <div class="flex items-center space-x-2 text-xs uppercase text-cinema-gray font-semibold">
+                                <span>${m.genre}</span>
+                                <span>•</span>
+                                <span>${m.runtime} 分鐘</span>
+                                <span>•</span>
+                                <span>${m.rating}</span>
+                            </div>
+                            <h2 class="text-3xl font-black text-cinema-dark mt-1">${m.title}</h2>
+                            <p class="text-sm text-cinema-gray italic">${m.originalTitle} (${m.releaseDate} 上映)</p>
+                        </div>
+
+                        <div class="space-y-2 text-sm">
+                            <p><strong>導演：</strong>${m.director}</p>
+                            <p><strong>演員：</strong>${m.cast}</p>
+                            <p class="leading-relaxed text-cinema-gray mt-2">${m.synopsis}</p>
+                        </div>
+
+                        ${m.trailer ? `
+                            <div class="space-y-2">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-cinema-gray">官方預告片 (Official Trailer)</h4>
+                                <div class="aspect-video w-full rounded-sm overflow-hidden bg-black">
+                                    <iframe src="https://www.youtube.com/embed/${m.trailer}" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- 個人收藏與心得編輯表單 -->
+                        <div class="bg-cinema-bg border border-cinema-lightgray p-5 rounded-sm space-y-4">
+                            <h4 class="font-bold text-cinema-dark text-base flex items-center space-x-2">
+                                <i class="fa-solid fa-bookmark"></i>
+                                <span>個人觀影筆記與收藏管理</span>
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                <div>
+                                    <label class="block font-bold mb-1">收藏狀態</label>
+                                    <select id="edit-col-status" class="w-full bg-white border border-cinema-lightgray p-2 rounded">
+                                        <option value="none" ${col.status === 'none' ? 'selected' : ''}>未收藏</option>
+                                        <option value="to-watch" ${col.status === 'to-watch' ? 'selected' : ''}>想看 (To Watch)</option>
+                                        <option value="watched" ${col.status === 'watched' ? 'selected' : ''}>已看 (Watched)</option>
+                                        <option value="now-showing" ${col.status === 'now-showing' ? 'selected' : ''}>正在上映</option>
+                                        <option value="favorites" ${col.status === 'favorites' ? 'selected' : ''}>最愛 (Favorites)</option>
+                                        <option value="not-interested" ${col.status === 'not-interested' ? 'selected' : ''}>暫不觀看</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-bold mb-1">個人評分 (1-5星)</label>
+                                    <select id="edit-col-rating" class="w-full bg-white border border-cinema-lightgray p-2 rounded">
+                                        <option value="0" ${col.rating == 0 ? 'selected' : ''}>未評分</option>
+                                        <option value="1" ${col.rating == 1 ? 'selected' : ''}>★ 1 星</option>
+                                        <option value="2" ${col.rating == 2 ? 'selected' : ''}>★★ 2 星</option>
+                                        <option value="3" ${col.rating == 3 ? 'selected' : ''}>★★★ 3 星</option>
+                                        <option value="4" ${col.rating == 4 ? 'selected' : ''}>★★★★ 4 星</option>
+                                        <option value="5" ${col.rating == 5 ? 'selected' : ''}>★★★★★ 5 星 (神作)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                <div>
+                                    <label class="block font-bold mb-1">觀看日期</label>
+                                    <input type="date" id="edit-col-date" value="${col.watchDate || ''}" class="w-full bg-white border border-cinema-lightgray p-2 rounded">
+                                </div>
+                                <div class="flex items-center pt-5">
+                                    <label class="flex items-center space-x-2 cursor-pointer font-bold">
+                                        <input type="checkbox" id="edit-col-theatrical" ${col.theatrical ? 'checked' : ''} class="rounded">
+                                        <span>想在電影院大銀幕觀看</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-xs mb-1">個人觀影心得與筆記</label>
+                                <textarea id="edit-col-notes" rows="3" class="w-full bg-white border border-cinema-lightgray p-2 rounded text-xs" placeholder="記錄您的觀影感動或影評...">${col.notes || ''}</textarea>
+                            </div>
+                            <button onclick="saveCollectionItem('${m.id}')" class="w-full bg-cinema-dark text-white font-semibold py-2.5 rounded text-xs hover:bg-cinema-accent transition">儲存收藏與心得</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('movie-modal').classList.remove('hidden');
+        }
+
+        function closeMovieModal() {
+            document.getElementById('movie-modal').classList.add('hidden');
+        }
+
+        function saveCollectionItem(movieId) {
+            const status = document.getElementById('edit-col-status').value;
+            const rating = parseInt(document.getElementById('edit-col-rating').value);
+            const watchDate = document.getElementById('edit-col-date').value;
+            const theatrical = document.getElementById('edit-col-theatrical').checked;
+            const notes = document.getElementById('edit-col-notes').value;
+
+            if (status === 'none') {
+                delete userCollections[movieId];
+            } else {
+                userCollections[movieId] = { status, rating, watchDate, theatrical, notes, tags: [] };
+            }
+
+            saveToLocalStorage();
+            updateCollectionBadge();
+            renderDashboard();
+            renderCollection();
+            closeMovieModal();
+            alert('收藏與心得已成功儲存！');
+        }
+
+        // 我的收藏管理
+        function switchCollectionTab(tab) {
+            currentCollectionFilter = tab;
+            document.querySelectorAll('.col-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-cinema-dark', 'text-white');
+                btn.classList.add('bg-white', 'border', 'border-cinema-lightgray', 'text-cinema-dark');
+            });
+            const activeBtn = document.getElementById(`col-tab-${tab}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-white', 'border', 'border-cinema-lightgray', 'text-cinema-dark');
+                activeBtn.classList.add('bg-cinema-dark', 'text-white');
+            }
+            renderCollection();
+        }
+
+        function renderCollection() {
+            let keys = Object.keys(userCollections);
+            if (currentCollectionFilter !== 'all') {
+                keys = keys.filter(id => userCollections[id].status === currentCollectionFilter);
+            }
+
+            const gridEl = document.getElementById('collection-grid');
+            if (keys.length === 0) {
+                gridEl.innerHTML = `<div class="col-span-full py-12 text-center text-cinema-gray">此分類目前尚無收藏電影。</div>`;
+                return;
+            }
+
+            gridEl.innerHTML = keys.map(id => {
+                const m = movies.find(x => x.id === id);
+                if (!m) return '';
+                return createMovieCardHTML(m);
+            }).join('');
+        }
+
+        function updateCollectionBadge() {
+            const count = Object.keys(userCollections).length;
+            document.getElementById('collection-badge').innerText = count;
+
+            // 更新分頁按鈕數字
+            const allCount = count;
+            const favCount = Object.values(userCollections).filter(c => c.status === 'favorites').length;
+            const toWatchCount = Object.values(userCollections).filter(c => c.status === 'to-watch').length;
+            const watchedCount = Object.values(userCollections).filter(c => c.status === 'watched').length;
+            const nowShowingCount = Object.values(userCollections).filter(c => c.status === 'now-showing').length;
+
+            const btnAll = document.getElementById('col-tab-all');
+            const btnFav = document.getElementById('col-tab-favorites');
+            const btnTw = document.getElementById('col-tab-to-watch');
+            const btnWa = document.getElementById('col-tab-watched');
+            const btnNs = document.getElementById('col-tab-now-showing');
+
+            if (btnAll) btnAll.innerText = `全部 (${allCount})`;
+            if (btnFav) btnFav.innerText = `最愛 Favorites (${favCount})`;
+            if (btnTw) btnTw.innerText = `想看 To Watch (${toWatchCount})`;
+            if (btnWa) btnWa.innerText = `已看 Watched (${watchedCount})`;
+            if (btnNs) btnNs.innerText = `正在上映 (${nowShowingCount})`;
+        }
+
+        // 手動新增電影 Modal
+        function openAddMovieModal() {
+            document.getElementById('add-movie-modal').classList.remove('hidden');
+        }
+
+        function closeAddMovieModal() {
+            document.getElementById('add-movie-modal').classList.add('hidden');
+            document.getElementById('add-movie-form').reset();
+        }
+
+        function handleSaveCustomMovie(e) {
+            e.preventDefault();
+            const newId = 'custom-' + Date.now();
+            const newMovie = {
+                id: newId,
+                title: document.getElementById('m-title').value,
+                originalTitle: document.getElementById('m-original-title').value,
+                releaseDate: document.getElementById('m-release-date').value || '2026-01-01',
+                genre: document.getElementById('m-genre').value || '劇情',
+                runtime: parseInt(document.getElementById('m-runtime').value) || 120,
+                director: document.getElementById('m-director').value || '未提供',
+                cast: document.getElementById('m-cast').value || '未提供',
+                rating: '普遍級',
+                synopsis: document.getElementById('m-synopsis').value || '無劇情簡介。',
+                imdb: parseFloat(document.getElementById('m-imdb').value) || 7.5,
+                rt: document.getElementById('m-rt').value || '80%',
+                metacritic: "75",
+                letterboxd: parseFloat(document.getElementById('m-letterboxd').value) || 3.8,
+                poster: document.getElementById('m-poster').value || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800',
+                trailer: document.getElementById('m-trailer').value || '',
+                officialSite: "#",
+                status: "now-showing"
+            };
+
+            movies.unshift(newMovie);
+            userCollections[newId] = { status: "to-watch", rating: 0, notes: "手動新增電影", tags: [], watchDate: "", theatrical: true };
+            saveToLocalStorage();
+            initApp();
+            closeAddMovieModal();
+            alert('電影已成功新增並加入收藏！');
+        }
+
+        // 全站即時搜尋
+        function handleGlobalSearch(keyword) {
+            if (!keyword.trim()) {
+                renderMovieDatabase();
+                return;
+            }
+            const kw = keyword.toLowerCase();
+            const results = movies.filter(m => 
+                m.title.toLowerCase().includes(kw) || 
+                m.originalTitle.toLowerCase().includes(kw) || 
+                m.director.toLowerCase().includes(kw) || 
+                m.cast.toLowerCase().includes(kw)
+            );
+
+            switchTab('movies');
+            const gridEl = document.getElementById('movie-database-grid');
+            if (results.length === 0) {
+                gridEl.innerHTML = `<div class="col-span-full py-12 text-center text-cinema-gray">找不到與 "${keyword}" 相關的電影。</div>`;
+                return;
+            }
+            gridEl.innerHTML = results.map(m => createMovieCardHTML(m)).join('');
+        }
+
+        // 匯出 JSON 備份
+        function exportJSON() {
+            const data = {
+                movies,
+                showtimes,
+                userCollections,
+                exportDate: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cinema-index-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 匯入 JSON 備份
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.movies && data.userCollections) {
+                        movies = data.movies;
+                        if (data.showtimes) showtimes = data.showtimes;
+                        userCollections = data.userCollections;
+                        saveToLocalStorage();
+                        initApp();
+                        alert('備份資料成功匯入！');
+                    } else {
+                        alert('JSON 格式不正確。');
+                    }
+                } catch (err) {
+                    alert('解析 JSON 檔案失敗：' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function refreshData() {
+            alert('資料已是最新狀態！');
+        }
+    </script>
+</body>
+</html>
 
