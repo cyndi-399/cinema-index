@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CINEMA INDEX｜YOUR PERSONAL MOVIE GUIDE</title>
+  <meta name="description" content="私人電影資訊與收藏網站｜台灣北部戲院場次、電影資料庫、個人觀影紀錄" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --bg-card: #ffffff;
+      --bg-dark: #1a1614;
+      --text: #1a1614;
+      --text-muted: #6b635c;
+      --border: #e5e0d8;
+      --accent: #3d2b1f;
+      --accent-soft: #8b7355;
+      --star: #c9a227;
+      --danger: #8b3a3a;
+      --radius: 10px;
+      --shadow: 0 4px 20px rgba(26, 22, 20, 0.06);
+      --font-sans: 'Noto Sans TC', system-ui, sans-serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ========== Header ========== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(247, 244, 239, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .logo span {
+      display: block;
+      font-family: var(--font-sans);
+      font-size: 0.65rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 180px;
+      max-width: 420px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 16px 10px 40px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg-card);
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus { border-color: var(--accent-soft); }
+    .search-box::before {
+      content: '⌕';
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .nav {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .nav button {
+      background: none;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .nav button:hover, .nav button.active {
+      color: var(--accent);
+      background: rgba(61, 43, 31, 0.06);
+    }
+    .nav button.active { font-weight: 500; }
+
+    /* ========== Main Layout ========== */
+    .main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+    .section { display: none; }
+    .section.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+    .section-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* ========== Dashboard ========== */
+    .dash-grid {
+      display: grid;
+      gap: 32px;
+    }
+    .dash-block h3 {
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dash-block h3 a {
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: var(--accent-soft);
+      text-decoration: none;
+    }
+    .movie-row {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .movie-row::-webkit-scrollbar { height: 4px; }
+    .movie-row::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ========== Movie Card ========== */
+    .movie-card {
+      flex: 0 0 140px;
+      scroll-snap-align: start;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .movie-card:hover { transform: translateY(-3px); }
+    .movie-card .poster {
+      width: 140px;
+      height: 210px;
+      border-radius: var(--radius);
+      object-fit: cover;
+      background: #ddd;
+      box-shadow: var(--shadow);
+      display: block;
+    }
+    .movie-card .title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-top: 8px;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .movie-card .meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Grid version */
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 20px 16px;
+    }
+    .movie-grid .movie-card { flex: none; width: 100%; }
+    .movie-grid .movie-card .poster { width: 100%; height: auto; aspect-ratio: 2/3; }
+
+    /* ========== Filters ========== */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    .filters select, .filters input[type="text"] {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-card);
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+    }
+    .filters select:focus, .filters input:focus { border-color: var(--accent-soft); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-card);
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn:hover { border-color: var(--accent-soft); color: var(--accent); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: #2a1e15; color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+    .btn-danger { color: var(--danger); border-color: #e0c8c8; }
+    .btn-danger:hover { background: #fdf5f5; }
+
+    /* ========== Detail Modal ========== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 22, 20, 0.55);
+      z-index: 200;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px;
+      overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border-radius: 14px;
+      max-width: 860px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: rgba(0,0,0,0.06);
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      z-index: 2;
+      color: var(--text);
+    }
+    .modal-body { display: flex; flex-wrap: wrap; }
+    .modal-poster {
+      width: 260px;
+      flex-shrink: 0;
+    }
+    .modal-poster img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .modal-info {
+      flex: 1;
+      min-width: 280px;
+      padding: 28px 28px 32px;
+    }
+    .modal-info h2 {
+      font-family: var(--font-serif);
+      font-size: 1.6rem;
+      font-weight: 600;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+    .modal-info .orig-title {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .meta-row span { white-space: nowrap; }
+    .ratings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .rating-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 14px;
+      background: var(--bg);
+      border-radius: 8px;
+      min-width: 70px;
+    }
+    .rating-badge .score {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .rating-badge .source {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .rating-badge a {
+      font-size: 0.65rem;
+      color: var(--accent-soft);
+      text-decoration: none;
+      margin-top: 2px;
+    }
+    .plot {
+      font-size: 0.9rem;
+      color: var(--text);
+      margin-bottom: 18px;
+      line-height: 1.7;
+    }
+    .crew {
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .crew strong { color: var(--text-muted); font-weight: 500; margin-right: 6px; }
+    .modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+    .trailer-wrap {
+      margin-top: 20px;
+      aspect-ratio: 16/9;
+      background: #111;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .trailer-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .no-trailer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    /* ========== Collection ========== */
+    .collection-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .collection-tabs button {
+      background: none;
+      border: none;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .collection-tabs button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 500;
+    }
+    .collection-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state p { margin-top: 8px; font-size: 0.9rem; }
+
+    /* Collection item card */
+    .coll-item {
+      display: flex;
+      gap: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+    .coll-item .poster {
+      width: 70px;
+      height: 105px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .coll-item .info { flex: 1; min-width: 0; }
+    .coll-item .title {
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .coll-item .title:hover { color: var(--accent-soft); }
+    .coll-item .stars {
+      color: var(--star);
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      margin: 4px 0;
+    }
+    .coll-item .note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .coll-item .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .tag {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      background: var(--bg);
+      border-radius: 999px;
+      color: var(--text-muted);
+    }
+    .coll-item .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* ========== Cinema ========== */
+    .cinema-list { display: grid; gap: 16px; }
+    .cinema-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+    .cinema-card h4 {
+      font-size: 1.05rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .cinema-card .addr {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .showtime-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .showtime-table th {
+      text-align: left;
+      padding: 6px 8px;
+      color: var(--text-muted);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    .showtime-table td {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .showtime-table tr:last-child td { border-bottom: none; }
+    .time-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .time-chip {
+      display: inline-block;
+      padding: 3px 10px;
+      background: var(--bg);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .format-tag {
+      font-size: 0.7rem;
+      color: var(--accent-soft);
+      margin-left: 4px;
+    }
+    .update-time {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 16px;
+      text-align: right;
+    }
+
+    /* ========== Collection Form Modal ========== */
+    .form-modal .modal { max-width: 480px; }
+    .form-modal .modal-info { padding: 28px; width: 100%; }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .form-group select,
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .star-select {
+      display: flex;
+      gap: 4px;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .star-select span {
+      color: #ddd;
+      transition: color 0.15s;
+    }
+    .star-select span.on { color: var(--star); }
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* ========== Status & Toast ========== */
+    .status-bar {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--bg-dark);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      z-index: 300;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+      max-width: 90vw;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* ========== Footer ========== */
+    .footer {
+      text-align: center;
+      padding: 24px 20px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ========== Responsive ========== */
+    @media (max-width: 700px) {
+      .header-inner { gap: 12px; }
+      .logo { font-size: 1.15rem; }
+      .nav { width: 100%; order: 3; justify-content: space-between; }
+      .nav button { padding: 8px 10px; font-size: 0.8rem; }
+      .search-box { max-width: none; }
+      .modal-poster { width: 100%; max-height: 320px; overflow: hidden; }
+      .modal-poster img { width: 100%; height: 320px; object-fit: cover; object-position: top; }
+      .modal-info { padding: 20px; }
+      .modal-info h2 { font-size: 1.3rem; }
+      .coll-item { flex-wrap: wrap; }
+      .coll-item .actions { flex-direction: row; width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="#" class="logo" onclick="showSection('dashboard'); return false;">
+        CINEMA INDEX
+        <span>YOUR PERSONAL MOVIE GUIDE</span>
+      </a>
+      <div class="search-box">
+        <input type="text" id="globalSearch" placeholder="搜尋電影、演員、導演…" oninput="onGlobalSearch(this.value)" />
+      </div>
+      <nav class="nav">
+        <button class="active" data-section="dashboard" onclick="showSection('dashboard')">首頁</button>
+        <button data-section="movies" onclick="showSection('movies')">電影庫</button>
+        <button data-section="cinemas" onclick="showSection('cinemas')">戲院場次</button>
+        <button data-section="collection" onclick="showSection('collection')">我的收藏</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- ========== Dashboard ========== -->
+    <section id="section-dashboard" class="section active">
+      <div class="dash-grid">
+        <div class="dash-block">
+          <h3>今日上映 <a href="#" onclick="showSection('movies'); return false;">查看全部 →</a></h3>
+          <div class="movie-row" id="dash-now-showing"></div>
+        </div>
+        <div class="dash-block">
+          <h3>即將上映</h3>
+          <div class="movie-row" id="dash-upcoming"></div>
+        </div>
+        <div class="dash-block">
+          <h3>我的收藏 <a href="#" onclick="showSection('collection'); return false;">管理 →</a></h3>
+          <div class="movie-row" id="dash-collection"></div>
+        </div>
+        <div class="dash-block">
+          <h3>最近瀏覽</h3>
+          <div class="movie-row" id="dash-recent"></div>
+        </div>
+        <div class="dash-block">
+          <h3>本週熱門</h3>
+          <div class="movie-row" id="dash-popular"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Movies ========== -->
+    <section id="section-movies" class="section">
+      <h2 class="section-title">電影資料庫</h2>
+      <p class="section-sub">台灣北部近期上映與即將上映電影</p>
+      <div class="filters">
+        <select id="filterGenre" onchange="renderMovieGrid()">
+          <option value="">全部類型</option>
+        </select>
+        <select id="filterYear" onchange="renderMovieGrid()">
+          <option value="">全部年份</option>
+        </select>
+        <select id="filterStatus" onchange="renderMovieGrid()">
+          <option value="">全部狀態</option>
+          <option value="now">正在上映</option>
+          <option value="upcoming">即將上映</option>
+        </select>
+        <input type="text" id="filterKeyword" placeholder="關鍵字篩選…" oninput="renderMovieGrid()" style="min-width:160px" />
+      </div>
+      <div class="movie-grid" id="movieGrid"></div>
+      <div class="status-bar" id="movieStatus" style="display:none"></div>
+    </section>
+
+    <!-- ========== Cinemas ========== -->
+    <section id="section-cinemas" class="section">
+      <h2 class="section-title">戲院與場次</h2>
+      <p class="section-sub">台灣北部主要影城 · 資料為示範用模擬資料</p>
+      <div class="filters">
+        <select id="cinemaCity" onchange="renderCinemas()">
+          <option value="">全部縣市</option>
+          <option value="台北市">台北市</option>
+          <option value="新北市">新北市</option>
+          <option value="桃園市">桃園市</option>
+          <option value="基隆市">基隆市</option>
+          <option value="新竹市">新竹市</option>
+          <option value="新竹縣">新竹縣</option>
+        </select>
+        <select id="cinemaChain" onchange="renderCinemas()">
+          <option value="">全部影城</option>
+          <option value="威秀">威秀影城</option>
+          <option value="國賓">國賓影城</option>
+          <option value="秀泰">秀泰影城</option>
+          <option value="美麗華">美麗華大直</option>
+          <option value="新光">新光影城</option>
+          <option value="喜樂時代">喜樂時代</option>
+        </select>
+        <select id="cinemaDate" onchange="renderCinemas()">
+          <option value="today">今天</option>
+          <option value="tomorrow">明天</option>
+        </select>
+        <input type="text" id="cinemaMovie" placeholder="電影名稱…" oninput="renderCinemas()" style="min-width:140px" />
+      </div>
+      <div class="cinema-list" id="cinemaList"></div>
+      <p class="update-time" id="cinemaUpdateTime"></p>
+    </section>
+
+    <!-- ========== Collection ========== -->
+    <section id="section-collection" class="section">
+      <h2 class="section-title">我的收藏</h2>
+      <p class="section-sub">個人觀影紀錄與清單 · 資料儲存於瀏覽器 localStorage</p>
+      <div class="collection-tabs" id="collTabs">
+        <button class="active" data-cat="all" onclick="switchCollTab('all')">全部</button>
+        <button data-cat="toWatch" onclick="switchCollTab('toWatch')">想看</button>
+        <button data-cat="watched" onclick="switchCollTab('watched')">已看</button>
+        <button data-cat="nowShowing" onclick="switchCollTab('nowShowing')">正在上映</button>
+        <button data-cat="favorites" onclick="switchCollTab('favorites')">最愛</button>
+        <button data-cat="notInterested" onclick="switchCollTab('notInterested')">暫不觀看</button>
+      </div>
+      <div class="collection-actions">
+        <button class="btn btn-sm" onclick="exportCollection()">匯出 JSON 備份</button>
+        <button class="btn btn-sm" onclick="document.getElementById('importFile').click()">匯入 JSON</button>
+        <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importCollection(event)" />
+        <button class="btn btn-sm btn-danger" onclick="clearCollection()">清除全部收藏</button>
+      </div>
+      <div id="collectionList"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    CINEMA INDEX · 私人使用 · 電影資料整理自公開院線與新聞（2026-11）· 場次為示範
+  </footer>
+
+  <!-- Movie Detail Modal -->
+  <div class="modal-overlay" id="detailModal" onclick="if(event.target===this) closeDetail()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeDetail()">×</button>
+      <div class="modal-body" id="detailContent"></div>
+    </div>
+  </div>
+
+  <!-- Collection Form Modal -->
+  <div class="modal-overlay form-modal" id="formModal" onclick="if(event.target===this) closeForm()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeForm()">×</button>
+      <div class="modal-info" id="formContent"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============================================================
+    // SAMPLE DATA (Phase 1) — 真實 API 串接前的示範資料
+    // ============================================================
+    const SAMPLE_MOVIES = [
+      {
+        id: 'm001',
+        title: '哥吉拉-0.0',
+        originalTitle: 'Godzilla Minus Zero / ゴジラ-0.0',
+        poster: 'https://picsum.photos/seed/godzilla00/400/600',
+        releaseDate: '2026-11-06',
+        genres: ['科幻', '動作', '災難'],
+        runtime: 135,
+        director: '山崎貴',
+        cast: ['神木隆之介', '濱邊美波', '長澤雅美', '山田裕貴', '吉岡秀隆'],
+        rating: '輔12',
+        plot: '戰爭將日本粉碎至「零」，哥吉拉的襲擊更將它推至「負」的絕境。時間來到兩年後，人民歷盡痛苦磨難仍堅持復甦，看似終於可以回歸正常生活……然而巨獸再次襲來，徹底摧毀希望，將人類推向新的絕望深淵。',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'now',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm002',
+        title: '名偵探柯南 第30號殺人事件',
+        originalTitle: 'Detective Conan: The Counterfeit Case of Ultra 30',
+        poster: 'https://picsum.photos/seed/conan30/400/600',
+        releaseDate: '2026-11-06',
+        genres: ['動畫', '懸疑', '劇情'],
+        runtime: 94,
+        director: '鎌仲史陽',
+        cast: ['高山南', '山崎和佳奈', '小山力也', '堀川亮'],
+        rating: '保護級',
+        plot: '印有「東都鐵塔」的新版萬圓紙鈔問世，社會大眾為之沸騰。柯南與少年偵探團、阿笠博士、小蘭以及園子一同參觀日本紙幣印刷局的長野工廠。另一方面，警視廳在命案現場發現偽鈔，隨即成立搜查本部。面對因偽造新鈔而引發的國家級危機，柯南將以史上最大規模的全明星陣容迎戰！',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'now',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm003',
+        title: '黑潮',
+        originalTitle: 'Dead Tide',
+        poster: 'https://assets.showtimes.com.tw/images/d21bb3705dbda5ee42e46bcffd291aa2.jpg',
+        releaseDate: '2026-11-13',
+        genres: ['劇情', '愛情'],
+        runtime: 107,
+        director: '池家慶',
+        cast: ['陳澤耀', '李沐'],
+        rating: '輔12',
+        plot: '深藏祕密、背負過去的阿忠（陳澤耀 飾）出獄返鄉後，在夜裡退潮時捕蝦維生，意外遇見被家人幽禁在高腳屋中的女子雪（李沐 飾）。兩個被世界遺忘的孤獨靈魂，在夜色與潮汐之間建立羈絆，為彼此破碎、絕望的生命中注入一道暖流。入圍第63屆金馬獎多項大獎。',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'now',
+        source: '公開院線與新聞資訊整理（2026-11）· 秀泰影城',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm004',
+        title: '聖誕驚奇夜',
+        originalTitle: 'Ebenezer: A Christmas Carol',
+        poster: 'https://assets.showtimes.com.tw/images/61269f667b7673167db464847b88cd4e.jpg',
+        releaseDate: '2026-11-13',
+        genres: ['奇幻', '劇情'],
+        runtime: 116,
+        director: '提威斯特',
+        cast: ['強尼·戴普', '魯柏·葛林特', '黛西·蕾德莉', '伊恩·麥克連'],
+        rating: '輔12',
+        plot: '強尼·戴普飾演艾比尼澤·史古基，眾所周知的名字，卻不為人知的故事。經典聖誕頌的全新詮釋。',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'now',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm005',
+        title: '暮光禁地',
+        originalTitle: 'Vampire Carnival',
+        poster: 'https://assets.showtimes.com.tw/images/a09140fbdc703cef3a1573c62cd99a5f.jpg',
+        releaseDate: '2026-11-06',
+        genres: ['恐怖', '愛情'],
+        runtime: 100,
+        director: '大衛·夏博尼爾',
+        cast: [],
+        rating: '限制級',
+        plot: '悲傷的人，容易淪為獵物。團隊打造的恐怖鉅片。',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'now',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm006',
+        title: '沙丘（重映版）',
+        originalTitle: 'Dune',
+        poster: 'https://assets.showtimes.com.tw/images/274da7f91c90a1a546ad415b0cb24b7e.jpg',
+        releaseDate: '2026-11-13',
+        genres: ['科幻', '冒險'],
+        runtime: 165,
+        director: '丹尼斯·維勒納夫',
+        cast: ['提摩西·夏勒梅', '柔伊·克拉維茲', '奧斯卡·伊薩克', '傑森·摩莫亞'],
+        rating: '保護級',
+        plot: '經典科幻史詩重映。保羅·亞崔迪的命運之旅。',
+        officialSite: '',
+        trailerYoutubeId: 'n9xhJrPXop4',
+        ratings: {
+          imdb: { score: 8.0, url: 'https://www.imdb.com/title/tt1160419/' },
+          rt: { score: 83, url: '' },
+          metacritic: { score: 74, url: '' },
+          letterboxd: { score: 4.0, url: '' }
+        },
+        status: 'now',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm007',
+        title: '告別的年代',
+        originalTitle: 'The Age of Goodbyes',
+        poster: 'https://picsum.photos/seed/ageofgoodbyes/400/600',
+        releaseDate: '2026-11-13',
+        genres: ['劇情'],
+        runtime: 142,
+        director: '楊毅恆',
+        cast: ['宋芸樺', '邱士縉', '劉子銓', '劉亮佐'],
+        rating: '輔導級',
+        plot: '金馬影展開幕片，入圍最佳導演、改編劇本、攝影、美術設計。',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'now',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm008',
+        title: '泥面人',
+        originalTitle: '',
+        poster: 'https://picsum.photos/seed/mudface/400/600',
+        releaseDate: '2026-10-01',
+        genres: ['動作', '科幻'],
+        runtime: 108,
+        director: '',
+        cast: [],
+        rating: '限制級',
+        plot: '目前院線熱映作品之一。',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'now',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm009',
+        title: '飢餓遊戲：黎明收割',
+        originalTitle: 'The Hunger Games: Sunrise on the Reaping',
+        poster: 'https://picsum.photos/seed/hungergames/400/600',
+        releaseDate: '2026-11-20',
+        genres: ['科幻', '冒險', '動作'],
+        runtime: 0,
+        director: '',
+        cast: [],
+        rating: '',
+        plot: '時間拉回首集 24 年前，講述年輕黑密契的故事。11月20日台美同步上映。',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'upcoming',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      },
+      {
+        id: 'm010',
+        title: '大搜查線 N.E.W.',
+        originalTitle: 'Bayside Shakedown N.E.W.',
+        poster: 'https://picsum.photos/seed/bayside/400/600',
+        releaseDate: '2026-11-27',
+        genres: ['動作', '犯罪'],
+        runtime: 0,
+        director: '',
+        cast: ['織田裕二'],
+        rating: '',
+        plot: '日本國民電影《大搜查線》系列最新續作，11月27日全台上映。',
+        officialSite: '',
+        trailerYoutubeId: '',
+        ratings: {
+          imdb: { score: '—', url: '' },
+          rt: { score: '—', url: '' },
+          metacritic: { score: '—', url: '' },
+          letterboxd: { score: '—', url: '' }
+        },
+        status: 'upcoming',
+        source: '公開院線與新聞資訊整理（2026-11）',
+        updatedAt: '2026-11-15'
+      }
+    ];
+
+    // Fix poster URLs that may 404 — use reliable placeholders with movie-like aspect
+    // posters set per movie
+
+    const SAMPLE_CINEMAS = [
+      {
+        id: 'c01',
+        name: '威秀影城 信義店',
+        chain: '威秀',
+        city: '台北市',
+        address: '台北市信義區松壽路18號',
+        showtimes: [
+          { movieId: 'm001', movieTitle: '沙丘：第二部', date: 'today', times: [{ t: '10:30', f: 'IMAX' }, { t: '13:45', f: 'IMAX' }, { t: '17:00', f: '2D' }, { t: '20:15', f: 'IMAX' }], bookingUrl: 'https://www.vscinemas.com.tw' },
+          { movieId: 'm002', movieTitle: '奧本海默', date: 'today', times: [{ t: '11:00', f: '2D' }, { t: '14:30', f: '2D' }, { t: '18:00', f: '2D' }], bookingUrl: 'https://www.vscinemas.com.tw' },
+          { movieId: 'm010', movieTitle: 'Barbie 芭比', date: 'today', times: [{ t: '12:20', f: '2D' }, { t: '15:40', f: '2D' }, { t: '19:10', f: '2D' }], bookingUrl: 'https://www.vscinemas.com.tw' }
+        ]
+      },
+      {
+        id: 'c02',
+        name: '國賓影城 台北長春廣場',
+        chain: '國賓',
+        city: '台北市',
+        address: '台北市長春路176號',
+        showtimes: [
+          { movieId: 'm003', movieTitle: '你的名字。', date: 'today', times: [{ t: '13:00', f: '2D' }, { t: '16:20', f: '2D' }, { t: '19:40', f: '2D' }], bookingUrl: 'https://www.ambassador.com.tw' },
+          { movieId: 'm005', movieTitle: '寄生上流', date: 'today', times: [{ t: '14:10', f: '2D' }, { t: '17:30', f: '2D' }], bookingUrl: 'https://www.ambassador.com.tw' }
+        ]
+      },
+      {
+        id: 'c03',
+        name: '秀泰影城 台北西門',
+        chain: '秀泰',
+        city: '台北市',
+        address: '台北市萬華區成都路10號',
+        showtimes: [
+          { movieId: 'm001', movieTitle: '沙丘：第二部', date: 'today', times: [{ t: '11:20', f: '2D' }, { t: '15:00', f: '2D' }, { t: '18:40', f: '2D' }], bookingUrl: 'https://www.showtimes.com.tw' },
+          { movieId: 'm008', movieTitle: '鬼滅之刃 無限列車篇', date: 'today', times: [{ t: '12:00', f: '2D' }, { t: '16:00', f: '2D' }], bookingUrl: 'https://www.showtimes.com.tw' }
+        ]
+      },
+      {
+        id: 'c04',
+        name: '美麗華大直影城',
+        chain: '美麗華',
+        city: '台北市',
+        address: '台北市中山區敬業三路20號',
+        showtimes: [
+          { movieId: 'm001', movieTitle: '沙丘：第二部', date: 'today', times: [{ t: '10:00', f: 'IMAX' }, { t: '14:00', f: 'IMAX' }, { t: '18:00', f: 'IMAX' }, { t: '21:30', f: 'IMAX' }], bookingUrl: 'https://www.miramarcinemas.tw' },
+          { movieId: 'm009', movieTitle: '阿凡達：水之道', date: 'today', times: [{ t: '11:30', f: '3D' }, { t: '15:30', f: '3D' }], bookingUrl: 'https://www.miramarcinemas.tw' }
+        ]
+      },
+      {
+        id: 'c05',
+        name: '新光影城 台北信義新天地A8',
+        chain: '新光',
+        city: '台北市',
+        address: '台北市信義區松壽路12號',
+        showtimes: [
+          { movieId: 'm004', movieTitle: '星際效應', date: 'today', times: [{ t: '13:30', f: '2D' }, { t: '17:00', f: '2D' }], bookingUrl: 'https://www.skcinemas.com' },
+          { movieId: 'm007', movieTitle: '天能', date: 'today', times: [{ t: '14:45', f: '2D' }, { t: '18:15', f: '2D' }], bookingUrl: 'https://www.skcinemas.com' }
+        ]
+      },
+      {
+        id: 'c06',
+        name: '喜樂時代影城 南港店',
+        chain: '喜樂時代',
+        city: '台北市',
+        address: '台北市南港區忠孝東路七段371號',
+        showtimes: [
+          { movieId: 'm010', movieTitle: 'Barbie 芭比', date: 'today', times: [{ t: '11:50', f: '2D' }, { t: '15:10', f: '2D' }, { t: '18:30', f: '2D' }], bookingUrl: 'https://www.theater.com.tw' }
+        ]
+      },
+      {
+        id: 'c07',
+        name: '威秀影城 桃園統正店',
+        chain: '威秀',
+        city: '桃園市',
+        address: '桃園市中壢區中園路二段501號',
+        showtimes: [
+          { movieId: 'm001', movieTitle: '沙丘：第二部', date: 'today', times: [{ t: '12:00', f: '2D' }, { t: '16:30', f: '2D' }, { t: '20:00', f: '2D' }], bookingUrl: 'https://www.vscinemas.com.tw' },
+          { movieId: 'm002', movieTitle: '奧本海默', date: 'today', times: [{ t: '13:20', f: '2D' }, { t: '17:50', f: '2D' }], bookingUrl: 'https://www.vscinemas.com.tw' }
+        ]
+      },
+      {
+        id: 'c08',
+        name: '國賓影城 新莊店',
+        chain: '國賓',
+        city: '新北市',
+        address: '新北市新莊區新莊路一段',
+        showtimes: [
+          { movieId: 'm005', movieTitle: '寄生上流', date: 'today', times: [{ t: '14:00', f: '2D' }, { t: '17:20', f: '2D' }], bookingUrl: 'https://www.ambassador.com.tw' },
+          { movieId: 'm003', movieTitle: '你的名字。', date: 'today', times: [{ t: '15:40', f: '2D' }, { t: '19:00', f: '2D' }], bookingUrl: 'https://www.ambassador.com.tw' }
+        ]
+      },
+      {
+        id: 'c09',
+        name: '秀泰影城 竹北店',
+        chain: '秀泰',
+        city: '新竹縣',
+        address: '新竹縣竹北市莊敬南路',
+        showtimes: [
+          { movieId: 'm001', movieTitle: '沙丘：第二部', date: 'today', times: [{ t: '13:00', f: '2D' }, { t: '17:00', f: '2D' }], bookingUrl: 'https://www.showtimes.com.tw' }
+        ]
+      },
+      {
+        id: 'c10',
+        name: '威秀影城 新竹大遠百',
+        chain: '威秀',
+        city: '新竹市',
+        address: '新竹市西大路323號',
+        showtimes: [
+          { movieId: 'm009', movieTitle: '阿凡達：水之道', date: 'today', times: [{ t: '11:00', f: '3D' }, { t: '15:00', f: '3D' }, { t: '19:00', f: '3D' }], bookingUrl: 'https://www.vscinemas.com.tw' },
+          { movieId: 'm006', movieTitle: '電影版 咒術迴戰 0', date: 'today', times: [{ t: '14:30', f: '2D' }, { t: '18:00', f: '2D' }], bookingUrl: 'https://www.vscinemas.com.tw' }
+        ]
+      }
+    ];
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    let collection = loadCollection();
+    let recentViews = loadRecent();
+    let currentCollTab = 'all';
+    let formMovieId = null;
+
+    // ============================================================
+    // LOCAL STORAGE
+    // ============================================================
+    function loadCollection() {
+      try {
+        const raw = localStorage.getItem('cinemaIndex_collection');
+        return raw ? JSON.parse(raw) : {};
+      } catch { return {}; }
+    }
+    function saveCollection() {
+      localStorage.setItem('cinemaIndex_collection', JSON.stringify(collection));
+    }
+    function loadRecent() {
+      try {
+        const raw = localStorage.getItem('cinemaIndex_recent');
+        return raw ? JSON.parse(raw) : [];
+      } catch { return []; }
+    }
+    function saveRecent() {
+      localStorage.setItem('cinemaIndex_recent', JSON.stringify(recentViews.slice(0, 12)));
+    }
+
+    // ============================================================
+    // NAVIGATION
+    // ============================================================
+    function showSection(name) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      const sec = document.getElementById('section-' + name);
+      if (sec) sec.classList.add('active');
+      const btn = document.querySelector(`.nav button[data-section="${name}"]`);
+      if (btn) btn.classList.add('active');
+      if (name === 'movies') renderMovieGrid();
+      if (name === 'cinemas') renderCinemas();
+      if (name === 'collection') renderCollection();
+      if (name === 'dashboard') renderDashboard();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ============================================================
+    // MOVIE HELPERS
+    // ============================================================
+    function getMovie(id) {
+      return SAMPLE_MOVIES.find(m => m.id === id);
+    }
+    function posterUrl(m) {
+      return m.poster || m.posterFallback || 'https://picsum.photos/400/600';
+    }
+    function yearOf(m) {
+      return m.releaseDate ? m.releaseDate.slice(0, 4) : '';
+    }
+
+    // ============================================================
+    // RENDER CARDS
+    // ============================================================
+    function movieCardHTML(m, compact = false) {
+      return `
+        <div class="movie-card" onclick="openDetail('${m.id}')">
+          <img class="poster" src="${posterUrl(m)}" alt="${m.title}" loading="lazy"
+               onerror="this.src='https://picsum.photos/seed/${m.id}/400/600'" />
+          <div class="title">${m.title}</div>
+          <div class="meta">${yearOf(m)} · ${m.genres[0] || ''}</div>
+        </div>
+      `;
+    }
+
+    // ============================================================
+    // DASHBOARD
+    // ============================================================
+    function renderDashboard() {
+      const now = SAMPLE_MOVIES.filter(m => m.status === 'now');
+      const upcoming = SAMPLE_MOVIES.filter(m => m.status === 'upcoming');
+      const popular = [...SAMPLE_MOVIES].sort((a, b) => (b.ratings?.imdb?.score || 0) - (a.ratings?.imdb?.score || 0)).slice(0, 8);
+
+      document.getElementById('dash-now-showing').innerHTML = now.slice(0, 10).map(m => movieCardHTML(m)).join('') || '<p class="empty-state">暫無資料</p>';
+      document.getElementById('dash-upcoming').innerHTML = upcoming.map(m => movieCardHTML(m)).join('') || '<p class="empty-state">暫無即將上映</p>';
+      document.getElementById('dash-popular').innerHTML = popular.map(m => movieCardHTML(m)).join('');
+
+      // Collection
+      const collIds = Object.keys(collection);
+      const collMovies = collIds.map(id => getMovie(id)).filter(Boolean);
+      document.getElementById('dash-collection').innerHTML = collMovies.length
+        ? collMovies.slice(0, 10).map(m => movieCardHTML(m)).join('')
+        : '<p style="font-size:0.85rem;color:var(--text-muted);padding:20px 0">尚未收藏任何電影，到電影庫加入吧</p>';
+
+      // Recent
+      const recentMovies = recentViews.map(id => getMovie(id)).filter(Boolean);
+      document.getElementById('dash-recent').innerHTML = recentMovies.length
+        ? recentMovies.map(m => movieCardHTML(m)).join('')
+        : '<p style="font-size:0.85rem;color:var(--text-muted);padding:20px 0">尚無瀏覽紀錄</p>';
+    }
+
+    // ============================================================
+    // MOVIE GRID + FILTERS
+    // ============================================================
+    function initFilters() {
+      const genres = new Set();
+      const years = new Set();
+      SAMPLE_MOVIES.forEach(m => {
+        m.genres.forEach(g => genres.add(g));
+        if (m.releaseDate) years.add(m.releaseDate.slice(0, 4));
+      });
+      const gSel = document.getElementById('filterGenre');
+      [...genres].sort().forEach(g => {
+        gSel.innerHTML += `<option value="${g}">${g}</option>`;
+      });
+      const ySel = document.getElementById('filterYear');
+      [...years].sort((a, b) => b - a).forEach(y => {
+        ySel.innerHTML += `<option value="${y}">${y}</option>`;
+      });
+    }
+
+    function renderMovieGrid() {
+      const genre = document.getElementById('filterGenre').value;
+      const year = document.getElementById('filterYear').value;
+      const status = document.getElementById('filterStatus').value;
+      const kw = (document.getElementById('filterKeyword').value || '').trim().toLowerCase();
+
+      let list = SAMPLE_MOVIES.filter(m => {
+        if (genre && !m.genres.includes(genre)) return false;
+        if (year && yearOf(m) !== year) return false;
+        if (status && m.status !== status) return false;
+        if (kw) {
+          const hay = [m.title, m.originalTitle, m.director, ...(m.cast || [])].join(' ').toLowerCase();
+          if (!hay.includes(kw)) return false;
+        }
+        return true;
+      });
+
+      const grid = document.getElementById('movieGrid');
+      const statusEl = document.getElementById('movieStatus');
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        statusEl.style.display = 'block';
+        statusEl.textContent = '沒有符合條件的電影';
+      } else {
+        statusEl.style.display = 'none';
+        grid.innerHTML = list.map(m => movieCardHTML(m)).join('');
+      }
+    }
+
+    // ============================================================
+    // GLOBAL SEARCH
+    // ============================================================
+    function onGlobalSearch(val) {
+      const q = (val || '').trim().toLowerCase();
+      if (!q) {
+        if (document.getElementById('section-movies').classList.contains('active')) {
+          document.getElementById('filterKeyword').value = '';
+          renderMovieGrid();
+        }
+        return;
+      }
+      showSection('movies');
+      document.getElementById('filterKeyword').value = val;
+      document.getElementById('filterGenre').value = '';
+      document.getElementById('filterYear').value = '';
+      document.getElementById('filterStatus').value = '';
+      renderMovieGrid();
+    }
+
+    // ============================================================
+    // DETAIL MODAL
+    // ============================================================
+    function openDetail(id) {
+      const m = getMovie(id);
+      if (!m) return;
+
+      // recent
+      recentViews = [id, ...recentViews.filter(x => x !== id)].slice(0, 12);
+      saveRecent();
+
+      const coll = collection[id];
+      const inColl = !!coll;
+
+      const ratingsHTML = Object.entries(m.ratings || {}).map(([src, r]) => {
+        const label = { imdb: 'IMDb', rt: 'Rotten Tomatoes', metacritic: 'Metacritic', letterboxd: 'Letterboxd' }[src] || src;
+        let score = r.score;
+        if (typeof r.score === 'number') {
+          score = src === 'letterboxd' ? r.score.toFixed(1) : (src === 'rt' || src === 'metacritic' ? r.score + '%' : r.score);
+        }
+        return `
+          <div class="rating-badge">
+            <div class="score">${score}</div>
+            <div class="source">${label}</div>
+            ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">來源</a>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      const trailerHTML = m.trailerYoutubeId
+        ? `<div class="trailer-wrap"><iframe src="https://www.youtube.com/embed/${m.trailerYoutubeId}?rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
+        : `<div class="trailer-wrap"><div class="no-trailer">暫無官方預告片</div></div>`;
+
+      document.getElementById('detailContent').innerHTML = `
+        <div class="modal-poster">
+          <img src="${posterUrl(m)}" alt="${m.title}" onerror="this.src='https://picsum.photos/seed/${m.id}/400/600'" />
+        </div>
+        <div class="modal-info">
+          <h2>${m.title}</h2>
+          <div class="orig-title">${m.originalTitle || ''}</div>
+          <div class="meta-row">
+            <span>${m.releaseDate || '—'}</span>
+            <span>${m.runtime ? m.runtime + ' 分鐘' : ''}</span>
+            <span>${m.rating || ''}</span>
+            <span>${(m.genres || []).join(' · ')}</span>
+          </div>
+          <div class="ratings">${ratingsHTML}</div>
+          <p class="plot">${m.plot || '暫無劇情簡介'}</p>
+          <div class="crew"><strong>導演</strong>${m.director || '—'}</div>
+          <div class="crew"><strong>演員</strong>${(m.cast || []).join('、') || '—'}</div>
+          ${m.officialSite ? `<div class="crew"><strong>官網</strong><a href="${m.officialSite}" target="_blank" rel="noopener">${m.officialSite}</a></div>` : ''}
+          <div class="crew" style="font-size:0.75rem;color:var(--text-muted);margin-top:8px">資料來源：${m.source || '—'} · 更新：${m.updatedAt || '—'}</div>
+          ${trailerHTML}
+          <div class="modal-actions">
+            <button class="btn btn-primary" onclick="openForm('${m.id}')">${inColl ? '編輯收藏' : '加入收藏'}</button>
+            ${inColl ? `<button class="btn btn-danger" onclick="removeFromCollection('${m.id}')">取消收藏</button>` : ''}
+            ${m.officialSite ? `<a class="btn" href="${m.officialSite}" target="_blank" rel="noopener">官方網站</a>` : ''}
+          </div>
+        </div>
+      `;
+      document.getElementById('detailModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+      document.getElementById('detailModal').classList.remove('open');
+      document.body.style.overflow = '';
+      // stop trailer
+      const iframe = document.querySelector('#detailContent iframe');
+      if (iframe) iframe.src = '';
+    }
+
+    // ============================================================
+    // COLLECTION FORM
+    // ============================================================
+    function openForm(movieId) {
+      formMovieId = movieId;
+      const m = getMovie(movieId);
+      const coll = collection[movieId] || {
+        category: 'toWatch',
+        rating: 0,
+        note: '',
+        tags: [],
+        watchedDate: '',
+        wantCinema: false
+      };
+
+      document.getElementById('formContent').innerHTML = `
+        <h2 style="font-family:var(--font-serif);font-size:1.25rem;margin-bottom:4px">${m.title}</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px">編輯收藏資料</p>
+        <div class="form-group">
+          <label>分類</label>
+          <select id="f-category">
+            <option value="toWatch" ${coll.category === 'toWatch' ? 'selected' : ''}>想看 To Watch</option>
+            <option value="watched" ${coll.category === 'watched' ? 'selected' : ''}>已看 Watched</option>
+            <option value="nowShowing" ${coll.category === 'nowShowing' ? 'selected' : ''}>正在上映 Now Showing</option>
+            <option value="favorites" ${coll.category === 'favorites' ? 'selected' : ''}>最愛 Favorites</option>
+            <option value="notInterested" ${coll.category === 'notInterested' ? 'selected' : ''}>暫不觀看 Not Interested</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>個人評分（1–5 星）</label>
+          <div class="star-select" id="f-stars">
+            ${[1,2,3,4,5].map(n => `<span data-n="${n}" class="${n <= (coll.rating || 0) ? 'on' : ''}" onclick="setStars(${n})">★</span>`).join('')}
+          </div>
+          <input type="hidden" id="f-rating" value="${coll.rating || 0}" />
+        </div>
+        <div class="form-group">
+          <label>觀看日期</label>
+          <input type="date" id="f-watchedDate" value="${coll.watchedDate || ''}" />
+        </div>
+        <div class="form-group">
+          <label>個人標籤（以逗號分隔）</label>
+          <input type="text" id="f-tags" value="${(coll.tags || []).join(', ')}" placeholder="例如：諾蘭, IMAX, 想再看" />
+        </div>
+        <div class="form-group">
+          <label>觀影心得</label>
+          <textarea id="f-note" placeholder="寫下你的想法…">${coll.note || ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="f-wantCinema" ${coll.wantCinema ? 'checked' : ''} style="width:auto" />
+            想在電影院觀看
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="btn" onclick="closeForm()">取消</button>
+          <button class="btn btn-primary" onclick="saveForm()">儲存</button>
+        </div>
+      `;
+      document.getElementById('formModal').classList.add('open');
+    }
+
+    function setStars(n) {
+      document.getElementById('f-rating').value = n;
+      document.querySelectorAll('#f-stars span').forEach(s => {
+        s.classList.toggle('on', parseInt(s.dataset.n) <= n);
+      });
+    }
+
+    function saveForm() {
+      const id = formMovieId;
+      if (!id) return;
+      collection[id] = {
+        category: document.getElementById('f-category').value,
+        rating: parseInt(document.getElementById('f-rating').value) || 0,
+        note: document.getElementById('f-note').value.trim(),
+        tags: document.getElementById('f-tags').value.split(/[,，]/).map(t => t.trim()).filter(Boolean),
+        watchedDate: document.getElementById('f-watchedDate').value,
+        wantCinema: document.getElementById('f-wantCinema').checked,
+        updatedAt: new Date().toISOString()
+      };
+      saveCollection();
+      closeForm();
+      toast('已儲存收藏');
+      if (document.getElementById('detailModal').classList.contains('open')) openDetail(id);
+      if (document.getElementById('section-collection').classList.contains('active')) renderCollection();
+      if (document.getElementById('section-dashboard').classList.contains('active')) renderDashboard();
+    }
+
+    function closeForm() {
+      document.getElementById('formModal').classList.remove('open');
+      formMovieId = null;
+    }
+
+    function removeFromCollection(id) {
+      if (!confirm('確定要從收藏中移除？')) return;
+      delete collection[id];
+      saveCollection();
+      toast('已移除收藏');
+      closeDetail();
+      if (document.getElementById('section-collection').classList.contains('active')) renderCollection();
+      if (document.getElementById('section-dashboard').classList.contains('active')) renderDashboard();
+    }
+
+    // ============================================================
+    // COLLECTION LIST
+    // ============================================================
+    function switchCollTab(cat) {
+      currentCollTab = cat;
+      document.querySelectorAll('#collTabs button').forEach(b => {
+        b.classList.toggle('active', b.dataset.cat === cat);
+      });
+      renderCollection();
+    }
+
+    function renderCollection() {
+      const list = document.getElementById('collectionList');
+      let entries = Object.entries(collection);
+      if (currentCollTab !== 'all') {
+        entries = entries.filter(([, v]) => v.category === currentCollTab);
+      }
+      if (entries.length === 0) {
+        list.innerHTML = `<div class="empty-state"><p>這個分類目前沒有電影</p><p style="margin-top:12px"><button class="btn btn-primary" onclick="showSection('movies')">去電影庫加入</button></p></div>`;
+        return;
+      }
+      // sort by updatedAt desc
+      entries.sort((a, b) => (b[1].updatedAt || '').localeCompare(a[1].updatedAt || ''));
+
+      list.innerHTML = entries.map(([id, c]) => {
+        const m = getMovie(id);
+        if (!m) return '';
+        const stars = c.rating ? '★'.repeat(c.rating) + '☆'.repeat(5 - c.rating) : '';
+        return `
+          <div class="coll-item">
+            <img class="poster" src="${posterUrl(m)}" alt="" onclick="openDetail('${id}')"
+                 onerror="this.src='https://picsum.photos/seed/${id}/140/210'" />
+            <div class="info">
+              <div class="title" onclick="openDetail('${id}')">${m.title}</div>
+              ${stars ? `<div class="stars">${stars}</div>` : ''}
+              ${c.watchedDate ? `<div style="font-size:0.8rem;color:var(--text-muted)">觀看日期：${c.watchedDate}</div>` : ''}
+              ${c.note ? `<div class="note">${escapeHtml(c.note)}</div>` : ''}
+              <div class="tags">
+                <span class="tag">${categoryLabel(c.category)}</span>
+                ${c.wantCinema ? '<span class="tag">想進戲院看</span>' : ''}
+                ${(c.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-sm" onclick="openForm('${id}')">編輯</button>
+              <button class="btn btn-sm btn-danger" onclick="removeFromCollection('${id}')">移除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function categoryLabel(cat) {
+      return { toWatch: '想看', watched: '已看', nowShowing: '正在上映', favorites: '最愛', notInterested: '暫不觀看' }[cat] || cat;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // ============================================================
+    // EXPORT / IMPORT
+    // ============================================================
+    function exportCollection() {
+      const data = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        collection,
+        recentViews
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cinema-index-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('已匯出備份檔');
+    }
+
+    function importCollection(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (data.collection && typeof data.collection === 'object') {
+            if (confirm('匯入會覆蓋目前的收藏資料，確定繼續？')) {
+              collection = data.collection;
+              if (Array.isArray(data.recentViews)) recentViews = data.recentViews;
+              saveCollection();
+              saveRecent();
+              renderCollection();
+              renderDashboard();
+              toast('匯入成功');
+            }
+          } else {
+            toast('檔案格式不正確');
+          }
+        } catch {
+          toast('無法解析 JSON 檔案');
+        }
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function clearCollection() {
+      if (!confirm('確定要清除全部收藏？此操作無法復原（除非你有備份）。')) return;
+      collection = {};
+      saveCollection();
+      renderCollection();
+      renderDashboard();
+      toast('已清除全部收藏');
+    }
+
+    // ============================================================
+    // CINEMAS
+    // ============================================================
+    function renderCinemas() {
+      const city = document.getElementById('cinemaCity').value;
+      const chain = document.getElementById('cinemaChain').value;
+      const date = document.getElementById('cinemaDate').value;
+      const movieKw = (document.getElementById('cinemaMovie').value || '').trim().toLowerCase();
+
+      let list = SAMPLE_CINEMAS.filter(c => {
+        if (city && c.city !== city) return false;
+        if (chain && c.chain !== chain) return false;
+        return true;
+      });
+
+      const html = list.map(c => {
+        let shows = (c.showtimes || []).filter(s => {
+          if (s.date !== date && date !== 'today') return false; // simple demo
+          if (movieKw && !s.movieTitle.toLowerCase().includes(movieKw)) return false;
+          return true;
+        });
+        if (shows.length === 0 && movieKw) return '';
+        if (shows.length === 0) shows = c.showtimes || [];
+
+        const rows = shows.map(s => `
+          <tr>
+            <td style="min-width:120px"><a href="#" onclick="openDetail('${s.movieId}');return false" style="color:var(--accent);text-decoration:none">${s.movieTitle}</a></td>
+            <td>
+              <div class="time-chips">
+                ${s.times.map(t => `<span class="time-chip">${t.t}<span class="format-tag">${t.f}</span></span>`).join('')}
+              </div>
+            </td>
+            <td style="white-space:nowrap">
+              <a class="btn btn-sm" href="${s.bookingUrl}" target="_blank" rel="noopener">訂票</a>
+            </td>
+          </tr>
+        `).join('');
+
+        return `
+          <div class="cinema-card">
+            <h4>${c.name}</h4>
+            <div class="addr">${c.city} · ${c.address}</div>
+            <table class="showtime-table">
+              <thead><tr><th>電影</th><th>場次</th><th></th></tr></thead>
+              <tbody>${rows || '<tr><td colspan="3" style="color:var(--text-muted)">此時段無符合場次</td></tr>'}</tbody>
+            </table>
+          </div>
+        `;
+      }).filter(Boolean).join('');
+
+      document.getElementById('cinemaList').innerHTML = html || '<div class="empty-state">沒有符合條件的戲院場次</div>';
+      document.getElementById('cinemaUpdateTime').textContent = '最後更新：2026-11-15 · 場次為公開資訊整理的示範資料，實際時刻請以各影城官網為準';
+    }
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2400);
+    }
+
+    // ============================================================
+    // KEYBOARD
+    // ============================================================
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeDetail();
+        closeForm();
+      }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    initFilters();
+    renderDashboard();
+    renderMovieGrid();
+    renderCinemas();
+  </script>
+</body>
+</html>
